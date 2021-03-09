@@ -16,47 +16,78 @@
   --  along with this program.  If not, see <https:   -- www.gnu.org/licenses/>.   --
   -----------------------------------------------------------------------------------*/
 
-package main
+package static
 
 import (
-	"flag"
-	"github.com/hyperjumptech/httptarget/model"
-	"github.com/hyperjumptech/httptarget/server"
+	"embed"
+	"fmt"
+	"github.com/hyperjumptech/httptarget/static/mime"
 	"github.com/sirupsen/logrus"
+	"net/http"
 	"os"
+	"strings"
 )
 
 var (
-	portFlag     = flag.Int("p", 51423, "Listen port")
-	hostFlag     = flag.String("h", "0.0.0.0", "Bind host")
-	bodyFlag     = flag.String("body", "OK", "HTTP response body")
-	pathFlag     = flag.String("path", "/", "Base path")
-	codeFlag     = flag.Int("code", 200, "Response code")
-	minDelayFlag = flag.Int("minDelay", 0, "Minimum Delay Millisecond")
-	maxDelayFlag = flag.Int("maxDelay", 200, "Maximum Delay Millisecond")
-	helpFlag     = flag.Bool("help", false, "Display this usage message")
+	errFileNotFound = fmt.Errorf("file not found")
 )
 
-func main() {
-	flag.Parse()
+//go:embed api
+var fs embed.FS
 
-	if *helpFlag {
-		flag.Usage()
-		os.Exit(0)
+type FileData struct {
+	Bytes       []byte
+	ContentType string
+}
+
+func IsDir(path string) bool {
+	for _, s := range GetPathTree("static") {
+		if s == "[DIR]"+path {
+			return true
+		}
 	}
+	return false
+}
 
-	initEp := &model.EndPoint{
-		ID:            0,
-		BasePath:      *pathFlag,
-		DelayMinMs:    *minDelayFlag,
-		DelayMaxMs:    *maxDelayFlag,
-		ReturnCode:    *codeFlag,
-		ReturnHeaders: map[string][]string{"Content-Type": {"text/plain"}},
-		ReturnBody:    *bodyFlag,
+func GetPathTree(path string) []string {
+	logrus.Infof("Into %s", path)
+	var entries []os.DirEntry
+	var err error
+	if strings.HasPrefix(path, "./") {
+		entries, err = fs.ReadDir(path[2:])
+	} else {
+		entries, err = fs.ReadDir(path)
 	}
-
-	err := server.Start(*hostFlag, *portFlag, initEp)
+	ret := make([]string, 0)
 	if err != nil {
-		logrus.Error(err)
+		return ret
 	}
+	logrus.Infof("Path %s %d etries", path, len(entries))
+	for _, e := range entries {
+		if e.IsDir() {
+			ret = append(ret, "[DIR]"+path+"/"+e.Name())
+			ret = append(ret, GetPathTree(path+"/"+e.Name())...)
+		} else {
+			ret = append(ret, path+"/"+e.Name())
+		}
+	}
+	return ret
+}
+
+func GetFile(path string) (*FileData, error) {
+	bytes, err := fs.ReadFile(path)
+	if err != nil {
+		return nil, err
+	}
+	mimeType, err := mime.MimeForFileName(path)
+	if err != nil {
+		return &FileData{
+			Bytes:       bytes,
+			ContentType: http.DetectContentType(bytes),
+		}, nil
+	}
+	return &FileData{
+		Bytes:       bytes,
+		ContentType: mimeType,
+	}, nil
 }

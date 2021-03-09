@@ -1,35 +1,27 @@
 {
   "swagger": "2.0",
   "info": {
-    "description": "Kepada sistem integrator melalui API NAR ini, <b>penting untuk diketahui</b>:<ul><li>Untuk data-data yang sifatnya wajib, API ini akan melakukan pemeriksaan terhadap kelengkapan dan formatnya. Harap perhatikan dengan teliti dalam definisi model data, untuk mencegah error saat memasukkan data</li><li>Sistem integrator bertanggung jawab atas kelengkapan dan kualitas data. Pastikan data-data yang dimasukkan adalah benar. Konfirmasikan lagi terhadap pasien, laboratorium, atau pihak yang terkait atas data-data tersebut.</li><li>Kerja sama sistem integrator untuk mengisikan data yang baik, bersih dan berkualitas sangat diharapkan.</li></ul>",
-    "version": "1.0.8",
-    "title": "NAR API Integrations",
+    "description": "Manage your dummey target server",
+    "version": "1.0.0",
+    "title": "HTTP Target Server",
     "termsOfService": ""
   },
-  "basePath": "/v1",
+  "basePath": "/api",
   "tags": [
     {
-      "name": "Integrasi NAR",
-      "description": "API integrasi pelaporan hasil pemeriksaan spesimen"
-    },
-    {
-      "name": "List Of Values",
-      "description": "Kode-kode rujukan"
+      "name": "Server Management",
+      "description": "Manage your http target server"
     }
   ],
   "schemes": [
-    "http",
-    "https"
+    "http"
   ],
   "paths": {
-    "/spesimen": {
+    "/paths": {
       "post": {
         "tags": [
-          "Integrasi NAR"
+          "Server Management"
         ],
-        "summary": "Pengisian data spesimen baru",
-        "description": "Pengisian data spesimen baru secara satu-persatu. <ul><li>API ini dipergunakan oleh sistem integrator untuk memasukan data spesimen kedalam sistem NAR</li><li>Dimungkinkan juga dalam mengisikan data mengenai spesimen, informasi-informasi lain seperti data pasien, data faskes dan data hasil pemeriksaan spesimen untuk disertakan</li><li>Apabila hasil pemeriksaan tidak tercantum dalam data spesimen ini, maka spesimen dianggap masih dalam proses pemeriksaan oleh lab</li><li>Hasil kembalian dari API ini adalah idSpesimen yang dapat digunakan untuk merubah data pada API yang lain</li></ul>",
-        "operationId": "LaporSpesimen",
         "consumes": [
           "application/json"
         ],
@@ -41,44 +33,50 @@
             "in": "body",
             "required": true,
             "name": "Data spesimen",
-            "description": "Informasi data spesimen yang akan direkam dalam sistem NAR",
+            "description": "Path information",
             "schema": {
-              "$ref": "#/definitions/InputDataSpesimen"
+              "$ref": "#/definitions/EndPoint"
             }
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
           }
         ],
         "responses": {
           "200": {
-            "description": "Berhasil",
+            "description": "Created",
             "schema": {
-              "$ref": "#/definitions/HasilInputDataSpesimen"
+              "$ref": "#/definitions/EndPointWithID"
             }
           },
           "400": {
-            "description": "Data yang anda masukan salah atau tidak lengkap"
-          },
-          "401": {
-            "description": "You are not authorized"
-          },
-          "403": {
-            "description": "Forbidden, your Authorization is not valid or sufficient"
+            "description": "Incorrect input"
           }
         }
-      }
-    },
-    "/batchspesimen": {
-      "post": {
+      },
+      "get": {
         "tags": [
-          "Integrasi NAR"
+          "Server Management"
         ],
-        "summary": "Pengisian data spesimen baru secara batch",
-        "description": "Pengisian data spesimen baru secara batch. <ul><li>API ini dipergunakan oleh sistem integrator untuk memasukan data spesimen kedalam sistem NAR</li><li>Dimungkinkan juga dalam mengisikan data mengenai spesimen, informasi-informasi lain seperti data pasien, data faskes dan data hasil pemeriksaan spesimen untuk disertakan</li><li>Apabila hasil pemeriksaan tidak tercantum dalam data spesimen ini, maka spesimen dianggap masih dalam proses pemeriksaan oleh lab</li><li>Hasil kembalian dari API ini adalah idSpesimen yang dapat digunakan untuk merubah data pada API yang lain</li></ul>",
-        "operationId": "BatchLaporSpesimen",
+        "produces": [
+          "application/json"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "schema": {
+              "type": "array",
+              "items": {
+                "$ref": "#/definitions/EndPointWithID"
+              }
+            }
+          },
+          "400": {
+            "description": "Incorrect input"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Server Management"
+        ],
         "consumes": [
           "application/json"
         ],
@@ -87,1217 +85,101 @@
         ],
         "parameters": [
           {
+            "in": "query",
+            "required": true,
+            "name": "id",
+            "type": "integer"
+          },
+          {
             "in": "body",
             "required": true,
             "name": "Data spesimen",
-            "description": "Informasi data spesimen yang akan direkam dalam sistem NAR",
+            "description": "Path update information",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/InputDataSpesimen"
-              }
+              "$ref": "#/definitions/EndPoint"
             }
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
           }
         ],
         "responses": {
           "200": {
-            "description": "Berhasil",
+            "description": "Updated",
             "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/HasilInputBatchSpesimen"
-              }
+              "$ref": "#/definitions/EndPointWithID"
             }
           },
           "400": {
-            "description": "Data yang anda masukan salah atau tidak lengkap"
-          },
-          "401": {
-            "description": "You are not authorized"
-          },
-          "403": {
-            "description": "Forbidden, your Authorization is not valid or sufficient"
-          }
-        }
-      }
-    },
-    "/spesimen/pasien/{nomorIdentitas}": {
-      "get": {
-        "tags": [
-          "Integrasi NAR"
-        ],
-        "summary": "Mengambil data semua spesimen berdasarkan identitas satu pasien",
-        "description": "Mengambil data semua spesimen yang sudah tersimpan dalam sistem NAR milik satu pasien",
-        "operationId": "AmbilDataSpesimenByPasien",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "nomorIdentitas",
-            "description": "NIK atau nomor passport dari pasien",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/DetilDataSpesimen"
-              }
-            }
-          },
-          "401": {
-            "description": "You are not authorized"
-          },
-          "403": {
-            "description": "Forbidden, your Authorization is not valid or sufficient"
+            "description": "Incorrect input"
           },
           "404": {
-            "description": "Data kasus tidak ditemukan"
-          }
-        }
-      }
-    },
-    "/spesimen/lab/{kodeLab}/{tanggalPengambilan}": {
-      "get": {
-        "tags": [
-          "Integrasi NAR"
-        ],
-        "summary": "Mengambil data semua spesimen berdasarkan kode lab dan tanggal pengambilan spesimen",
-        "description": "Mengambil data semua spesimen yang sudah tersimpan dalam sistem NAR berdasarkan lab dan tanggal pengambilan",
-        "operationId": "AmbilDataSpesimenByLab",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "kodeLab",
-            "description": "kode lab litbangkes, contoh: C.xx.xxx",
-            "type": "string"
-          },
-          {
-            "in": "path",
-            "required": true,
-            "name": "tanggalPengambilan",
-            "description": "tanggal pengambilan spesimen, format: yyyy-mm-dd",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/DetilDataSpesimen"
-              }
-            }
-          },
-          "401": {
-            "description": "You are not authorized"
-          },
-          "403": {
-            "description": "Forbidden, your Authorization is not valid or sufficient"
-          },
-          "404": {
-            "description": "Data kasus tidak ditemukan"
-          }
-        }
-      }
-    },
-    "/spesimen/{idSpesimen}": {
-      "get": {
-        "tags": [
-          "Integrasi NAR"
-        ],
-        "summary": "Mengambil data spesimen",
-        "description": "Mengambil data spesimen yang sudah tersimpan dalam sistem NAR",
-        "operationId": "AmbilDataSpesimen",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "idSpesimen",
-            "description": "ID spesimen yang diciptakan oleh sistem NAR",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "$ref": "#/definitions/DetilDataSpesimen"
-            }
-          },
-          "401": {
-            "description": "You are not authorized"
-          },
-          "403": {
-            "description": "Forbidden, your Authorization is not valid or sufficient"
-          },
-          "404": {
-            "description": "Data spesimen tidak ditemukan"
+            "description": "Not found"
           }
         }
       },
       "delete": {
         "tags": [
-          "Integrasi NAR"
+          "Server Management"
         ],
-        "summary": "Menghapus data spesimen yang sudah tercatat dalam NAR",
-        "description": "Menghapus data spesimen yang sudah tercatat dalam NAR",
-        "operationId": "HapusSpesimen",
         "parameters": [
           {
-            "in": "path",
+            "in": "query",
             "required": true,
-            "name": "idSpesimen",
-            "description": "Kode spesimen yang sudah tercatat sebelumnya dalam sistem NAR",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
+            "name": "id",
+            "type": "integer"
           }
         ],
         "responses": {
           "204": {
-            "description": "Berhasil"
-          },
-          "401": {
-            "description": "You are not authorized"
-          },
-          "403": {
-            "description": "Forbidden, your Authorization is not valid or sufficient"
-          }
-        }
-      }
-    },
-    "/spesimen/{idSpesimen}/pasien": {
-      "put": {
-        "tags": [
-          "Integrasi NAR"
-        ],
-        "summary": "Mengubah informasi pasien",
-        "description": "Merubah data pasien pada spesimen yang sudah tercatat dalam sistem NAR",
-        "operationId": "UbahPasien",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "idSpesimen",
-            "description": "Kode spesimen yang sudah tercatat sebelumnya dalam sistem NAR",
-            "type": "string"
-          },
-          {
-            "in": "body",
-            "required": true,
-            "name": "dataPasien",
-            "description": "Data pasien baru yang akan disimpan pada spesimen",
-            "schema": {
-              "$ref": "#/definitions/DataPasien"
-            }
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil"
-          },
-          "400": {
-            "description": "Data yang anda masukan salah atau tidak lengkap"
-          },
-          "401": {
-            "description": "You are not authorized"
-          },
-          "403": {
-            "description": "Forbidden, your Authorization is not valid or sufficient"
+            "description": "Deleted"
           },
           "404": {
-            "description": "Kode spesimen tidak ditemukan"
+            "description": "Not found"
           }
         }
       }
-    },
-    "/spesimen/{idSpesimen}/spesimen": {
-      "put": {
-        "tags": [
-          "Integrasi NAR"
-        ],
-        "summary": "Merubah data spesimen",
-        "description": "Merubah data spesimen pada spesimen yang sudah tersimpan dalam sistem NAR",
-        "operationId": "UbahSpesimen",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "idSpesimen",
-            "description": "Kode spesimen yang sudah tercatat sebelumnya dalam sistem NAR",
-            "type": "string"
-          },
-          {
-            "in": "body",
-            "required": true,
-            "name": "dataSpesimen",
-            "description": "Data spesimen baru yang akan disimpan pada spesimen",
-            "schema": {
-              "$ref": "#/definitions/DataSpesimen"
-            }
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil"
-          },
-          "400": {
-            "description": "Data yang anda masukan salah atau tidak lengkap"
-          },
-          "401": {
-            "description": "You are not authorized"
-          },
-          "403": {
-            "description": "Forbidden, your Authorization is not valid or sufficient"
-          },
-          "404": {
-            "description": "Kode spesimen tidak ditemukan"
-          }
-        }
-      }
-    },
-    "/spesimen/{idSpesimen}/faskes": {
-      "put": {
-        "tags": [
-          "Integrasi NAR"
-        ],
-        "summary": "Merubah data faskes",
-        "description": "Merubah data faskes pada spesimen yang sudah tersimpan dalam sistem NAR",
-        "operationId": "UbahDataFaskes",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "idSpesimen",
-            "description": "Kode spesimen yang sudah tercatat sebelumnya dalam sistem NAR",
-            "type": "string"
-          },
-          {
-            "in": "body",
-            "required": true,
-            "name": "dataFaskes",
-            "description": "Data faskes baru yang akan disimpan pada spesimen",
-            "schema": {
-              "$ref": "#/definitions/DataFaskes"
-            }
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil"
-          },
-          "400": {
-            "description": "Data yang anda masukan salah atau tidak lengkap"
-          },
-          "401": {
-            "description": "You are not authorized"
-          },
-          "403": {
-            "description": "Forbidden, your Authorization is not valid or sufficient"
-          },
-          "404": {
-            "description": "Kode spesimen tidak ditemukan"
-          }
-        }
-      }
-    },
-    "/spesimen/{idSpesimen}/hasil": {
-      "put": {
-        "tags": [
-          "Integrasi NAR"
-        ],
-        "summary": "Mengubah data hasil",
-        "description": "Mengubah data hasil pada spesimen yang sudah tersimpan dalam sistem NAR<ul><li><strong>PENTING</strong> : Apabila informasi pada field &quot;hasil&quot; dalam data yang terkirim bernilai &quot;POSITIF&quot;, maka sistem NAR akan mencatatkan spesimen ini sebagai <strong>KASUS POSITIF</strong>. Hal ini dipergunakan oleh petugas verifikasi untuk mem-verifikasi kasus Positif</li></ul>",
-        "operationId": "UbahDataHasil",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "idSpesimen",
-            "description": "Kode spesimen yang sudah tercatat sebelumnya dalam sistem NAR",
-            "type": "string"
-          },
-          {
-            "in": "body",
-            "required": true,
-            "name": "dataHasil",
-            "description": "Data hasil baru yang akan disimpan pada spesimen",
-            "schema": {
-              "$ref": "#/definitions/HasilSpesimen"
-            }
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil"
-          },
-          "400": {
-            "description": "Data yang anda masukan salah atau tidak lengkap"
-          },
-          "401": {
-            "description": "You are not authorized"
-          },
-          "403": {
-            "description": "Forbidden, your Authorization is not valid or sufficient"
-          },
-          "404": {
-            "description": "Kode spesimen tidak ditemukan"
-          }
-        }
-      }
-    },
-    "/lov/prov": {
-      "get": {
-        "tags": [
-          "List Of Values"
-        ],
-        "summary": "Mengambil daftar provinsi",
-        "description": "Mengambil data provinsi didalam sistem",
-        "operationId": "AmbilDataProvinsi",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/NamaKode"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/lov/prov/{kodeProv}/kabKot": {
-      "get": {
-        "tags": [
-          "List Of Values"
-        ],
-        "summary": "Mengambil daftar kabupaten kota",
-        "description": "Mengambil data kabupaten kota didalam provinsi didalam sistem",
-        "operationId": "AmbilDataKabKot",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "kodeProv",
-            "description": "Kode provinsi yang sudah tercatat sebelumnya dalam sistem NAR",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/NamaKode"
-              }
-            }
-          },
-          "404": {
-            "description": "Kode provinsi tidak ditemukan"
-          }
-        }
-      }
-    },
-    "/lov/prov/{kodeProv}/lab": {
-      "get": {
-        "tags": [
-          "List Of Values"
-        ],
-        "summary": "Mengambil daftar laboratorium dalam provinsi",
-        "description": "Mengambil daftar laboratorium dalam satu provinsi",
-        "operationId": "AmbilDataLab",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "kodeProv",
-            "description": "Kode provinsi yang sudah tercatat sebelumnya dalam sistem NAR",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/InfoLab"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/lov/prov/{kodeProv}/faskes": {
-      "get": {
-        "tags": [
-          "List Of Values"
-        ],
-        "summary": "Mengambil daftar faskes dalam provinsi",
-        "description": "Mengambil daftar faskes dalam satu provinsi",
-        "operationId": "AmbilDataFaskesByProp",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "kodeProv",
-            "description": "Kode provinsi yang sudah tercatat sebelumnya dalam sistem NAR",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/DataFaskes"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/lov/kabKot/{kodeKabKot}/kecamatan": {
-      "get": {
-        "tags": [
-          "List Of Values"
-        ],
-        "summary": "Mengambil daftar kecamatan",
-        "description": "Mengambil data kecamatan-kecamatan dalam kabupaten kota didalam provinsi didalam sistem",
-        "operationId": "AmbilDataCamat",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "kodeKabKot",
-            "description": "Kode kabupaten kota yang sudah tercatat sebelumnya dalam sistem NAR",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/NamaKode"
-              }
-            }
-          },
-          "404": {
-            "description": "Kode provinsi atau kabupaten/kotatidak ditemukan"
-          }
-        }
-      }
-    },
-    "/lov/kecamatan/{kodeKecamatan}/kelurahan": {
-      "get": {
-        "tags": [
-          "List Of Values"
-        ],
-        "summary": "Mengambil daftar kelurahan",
-        "description": "Mengambil data kelurahan didalam kecamatan dalam kabupaten kota didalam provinsi didalam sistem",
-        "operationId": "AmbilDataKelurahan",
-        "parameters": [
-          {
-            "in": "path",
-            "required": true,
-            "name": "kodeKecamatan",
-            "description": "Kode kecamatan yang sudah tercatat sebelumnya dalam sistem NAR",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/NamaKode"
-              }
-            }
-          },
-          "404": {
-            "description": "Kode provinsi atau kabupaten/kota atau kecamatan tidak ditemukan"
-          }
-        }
-      }
-    },
-    "/lov/lab": {
-      "get": {
-        "tags": [
-          "List Of Values"
-        ],
-        "summary": "Mengambil daftar Laboratorium",
-        "description": "Mengambil data laboratorium didalam sistem",
-        "operationId": "AmbilDataLAB",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/InfoLab"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/lov/faskes": {
-      "get": {
-        "tags": [
-          "List Of Values"
-        ],
-        "summary": "Mengambil daftar Fasilitas Kesehatan",
-        "description": "Mengambil data Fasilitas Kesehatan didalam sistem",
-        "operationId": "AmbilDataFasKes",
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/DataFaskes"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/lov/cariWilayah": {
-      "get": {
-        "tags": [
-          "List Of Values"
-        ],
-        "summary": "Mencari data provinsi, kabupaten, kecamatan atau kelurahan",
-        "description": "Mengambil data kelurahan ,kecamatan, kabupaten kota, provinsi didalam sistem. <br>Pencarian ini hanya menampilkan maksimum 10 kelurahan, 10 kecamatan, 10 kabupaten dan 10 provinsi yang sesuai kriteria pencarian. Jika anda tidak menemukan wilayah yang anda cari, perbaiki kriteria pencarian anda menjadi lebih spesifik.",
-        "operationId": "CariWIL",
-        "parameters": [
-          {
-            "in": "query",
-            "required": true,
-            "name": "q",
-            "description": "Kriteria pencarian, diisi dengan potongan kata dalam pencarian, pencarian ini akan mencari nama dan kode wilayah provinsi, kabupaten, kecamatan dan kelurahan",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/NamaKodeJenis"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/lov/cariLab": {
-      "get": {
-        "tags": [
-          "List Of Values"
-        ],
-        "summary": "Mencari data nama dan nomor laboratorium",
-        "description": "Mencari data nama dan nomor laboratorium yang terdaftar dalam sistem NAR<br>Pencarian ini hanya menampilkan maksimum 10 laboratorium yang sesuai kriteria pencarian. Jika anda tidak menemukan laboratorium yang anda cari, perbaiki kriteria pencarian anda menjadi lebih spesifik.",
-        "operationId": "CariLAB",
-        "parameters": [
-          {
-            "in": "query",
-            "required": true,
-            "name": "q",
-            "description": "Kriteria pencarian, diisi dengan potongan kata dalam pencarian, pencarian ini akan mencari nama dan kode lab.",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/InfoLab"
-              }
-            }
-          }
-        }
-      }
-    },
-    "/lov/cariFasKes": {
-      "get": {
-        "tags": [
-          "List Of Values"
-        ],
-        "summary": "Mencari data nama dan nomor Fasilitas Kesehatan",
-        "description": "Mencari data nama dan nomor Faskes yang terdaftar dalam sistem NAR<br>Pencarian ini hanya menampilkan maksimum 10 rumah sakit dan 10 puskesmas yang sesuai kriteria pencarian. Jika anda tidak menemukan faskes yang anda cari, perbaiki kriteria pencarian anda menjadi lebih spesifik.",
-        "operationId": "CariFasKes",
-        "parameters": [
-          {
-            "in": "query",
-            "required": true,
-            "name": "q",
-            "description": "Kriteria pencarian, diisi dengan potongan kata dalam pencarian, pencarian ini akan mencari nama dan kode faskes.",
-            "type": "string"
-          }
-        ],
-        "security": [
-          {
-            "ApiKeyAuth": []
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Berhasil",
-            "schema": {
-              "type": "array",
-              "items": {
-                "$ref": "#/definitions/DataFaskes"
-              }
-            }
-          }
-        }
-      }
-    }
-  },
-  "securityDefinitions": {
-    "ApiKeyAuth": {
-      "type": "apiKey",
-      "in": "header",
-      "name": "X-API-KEY"
     }
   },
   "definitions": {
-    "HasilInputDataSpesimen": {
-      "type": "object",
-      "properties": {
-        "idSpesimen": {
-          "type": "string",
-          "description": "Auto increment ID data spesimen yang diciptakan oleh NAR"
-        }
-      }
-    },
-    "HasilInputBatchSpesimen": {
-      "type": "object",
-      "properties": {
-        "status": {
-          "type": "string",
-          "enum": [
-            "SUKSES",
-            "GAGAL"
-          ],
-          "description": "Status keberhasilan, SUKSES atau GAGAL"
-        },
-        "info": {
-          "type": "string",
-          "description": "Berisi IDSpesimen jika sukses, atau Alasan jika gagal"
-        }
-      }
-    },
-    "DetilDataSpesimen": {
-      "type": "object",
-      "required": [
-        "pasien",
-        "faskes",
-        "spesimen"
-      ],
-      "properties": {
-        "inputOleh": {
-          "type": "string",
-          "description": "User yang melakukan input data"
-        },
-        "idSpesimen": {
-          "type": "string",
-          "description": "Auto increment ID data spesimen yang diciptakan oleh NAR"
-        },
-        "pasien": {
-          "$ref": "#/definitions/DetilDataPasien"
-        },
-        "faskes": {
-          "$ref": "#/definitions/DataFaskes"
-        },
-        "spesimen": {
-          "$ref": "#/definitions/DataSpesimenWithID"
-        },
-        "hasil": {
-          "$ref": "#/definitions/HasilSpesimen"
-        }
-      }
-    },
-    "InputDataSpesimen": {
-      "type": "object",
-      "required": [
-        "spesimen"
-      ],
-      "properties": {
-        "inputOleh": {
-          "type": "string",
-          "description": "User yang melakukan input data"
-        },
-        "spesimen": {
-          "$ref": "#/definitions/DataSpesimen"
-        },
-        "pasien": {
-          "$ref": "#/definitions/DataPasien"
-        },
-        "faskes": {
-          "$ref": "#/definitions/DataFaskes"
-        },
-        "hasil": {
-          "$ref": "#/definitions/HasilSpesimen"
-        }
-      }
-    },
-    "DetilDataPasien": {
+    "EndPointWithID": {
       "type": "object",
       "allOf": [
         {
-          "$ref": "#/definitions/DataPasien"
+          "$ref": "#/definitions/EndPoint"
         }
       ],
       "properties": {
-        "idPasien": {
-          "type": "string",
-          "description": "Auto increment ID data pasien yang diciptakan oleh NAR"
+        "id": {
+          "type": "string"
         }
       }
     },
-    "DataPasien": {
-      "type": "object",
-      "required": [
-        "nama",
-        "tanggalLahir",
-        "jenisIdentitas",
-        "nomorIdentitas",
-        "alamatDomisili"
-      ],
-      "properties": {
-        "nama": {
-          "type": "string",
-          "description": "Nama pasien, wajib disertakan",
-          "example": "Budi Sutopo Mihardjo"
-        },
-        "jenisIdentitas": {
-          "type": "integer",
-          "enum": [
-            1,
-            2
-          ],
-          "description": "1=KTP, 2=PASSPORT"
-        },
-        "nomorIdentitas": {
-          "type": "string",
-          "description": "Nomor KTP 16 digit atau passport 7-9 digit yang valid.",
-          "example": "1234567890123456"
-        },
-        "tanggalLahir": {
-          "type": "string",
-          "description": "Tanggal lahir pasien, dengan format yyyy-mm-dd",
-          "example": "1982-03-12"
-        },
-        "usiaTahun": {
-          "type": "integer",
-          "description": "Umur pasien dalam tahun",
-          "example": 34
-        },
-        "usiaBulan": {
-          "type": "integer",
-          "description": "Umur pasien dalam bulan yang ditambahkan dalam field usiaTahun tahun. Sebagai contoh:<ul><li>Untuk seorang bayi berumur 5 bulan, maka usiaTahun=0 dan usiaBulan=5</li><li>Untuk seorang balita berumur 15 bulan, maka usiaTahun=1 dan usiaBulan=3</li></ul>",
-          "example": 9
-        },
-        "jenisKelamin": {
-          "type": "integer",
-          "enum": [
-            1,
-            2
-          ],
-          "description": "Jenis kelamin pasien. 1=Laki-laki, 2=Perempuan"
-        },
-        "wargaNegara": {
-          "type": "integer",
-          "enum": [
-            1,
-            2
-          ],
-          "description": "Status kewarganegaraan, 1=WNI(Warga Negara Indonesia), 2=WNA(Warga Negara Asing)"
-        },
-        "ketWargaNegara": {
-          "type": "string",
-          "description": "Catatan mengenai status kewarganegaraan"
-        },
-        "alamatDomisili": {
-          "$ref": "#/definitions/DataAlamat"
-        }
-      }
-    },
-    "DataAlamat": {
-      "required": [
-        "kelurahan",
-        "kecamatan",
-        "kabupatenKota",
-        "provinsi"
-      ],
+    "EndPoint": {
       "type": "object",
       "properties": {
-        "nomorTelepon": {
-          "type": "string",
-          "description": "Nomor telepon atau HP yang bisa dihubungi",
-          "example": "08776543210"
-        },
-        "alamatDomisili": {
-          "type": "string",
-          "description": "Informasi alamat tempat tinggal sekarang",
-          "example": "Jl. Irian Blok A/12"
-        },
-        "rt": {
-          "type": "string",
-          "example": "002",
-          "description": "Nomor rukun tetangga"
-        },
-        "rw": {
-          "type": "string",
-          "example": "003",
-          "description": "Nomor rukun warga"
-        },
-        "kelurahan": {
-          "$ref": "#/definitions/NamaKode"
-        },
-        "kecamatan": {
-          "$ref": "#/definitions/NamaKode"
-        },
-        "kabupatenKota": {
-          "$ref": "#/definitions/NamaKode"
-        },
-        "provinsi": {
-          "$ref": "#/definitions/NamaKode"
-        }
-      }
-    },
-    "DataSpesimenWithID": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/definitions/DataSpesimen"
-        }
-      ],
-      "properties": {
-        "idSpesimen": {
-          "type": "string",
-          "description": "Auto increment ID spesimen yang diciptakan oleh NAR"
-        }
-      }
-    },
-    "DataSpesimen": {
-      "required": [
-        "nomorSpesimen"
-      ],
-      "type": "object",
-      "properties": {
-        "tujuanPemeriksaan": {
-          "type": "integer",
-          "enum": [
-            0,
-            1,
-            2,
-            3,
-            4,
-            5
-          ],
-          "description": "Tujuan pemeriksaan sampel. 0=Default, 1=Suspek, 2=Kontak Erat, 3=Screening, 4=Pelaku perjalanan, 5=Alasan lain"
-        },
-        "tanggalGejala": {
-          "type": "string",
-          "description": "Tanggal terdeteksi gejala. dengan format yyyy-mm-dd",
-          "example": "1982-03-12"
-        },
-        "nomorSpesimen": {
-          "type": "string",
-          "description": "Nomor spesimen dari lab yang menggunakan kode lab dari litbangkes",
-          "example": "C.01.10312"
-        },
-        "nomorUrutSpesimen": {
-          "type": "integer",
-          "description": "Spesimen ini adalah pengambilan dari pasien yang kesekian kali"
-        },
-        "jenisSpesimen": {
-          "type": "integer",
-          "enum": [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7,
-            8
-          ],
-          "description": "Jenis spesimen yang diambil. 1=Swab Nasofaring, 2=Swab Orofaring, 3=Sputum, 4=Bal Fluid, 5=Cairan Spirasi Trakhea, 6=Serum, 7=Lainnya, 8=Swab Naso-Orofaring"
-        },
-        "tanggalPengambilan": {
-          "type": "string",
-          "description": "Tanggal pengambilan spesimen. dengan format yyyy-mm-dd",
-          "example": "1982-03-12"
-        },
-        "statusPeriksa": {
-          "type": "integer",
-          "enum": [
-            1,
-            2
-          ],
-          "description": "Status pemeriksaan. 1=Belum Periksa, 2=Sudah Periksa"
-        },
-        "pembiayaan": {
-          "type": "integer",
-          "enum": [
-            0,
-            1,
-            2
-          ],
-          "description": "Status pembiayaan. 0=Default, 1=Berbayar, 2=Tidak Berbayar"
-        }
-      }
-    },
-    "HasilSpesimen": {
-      "required": [
-        "hasil"
-      ],
-      "type": "object",
-      "properties": {
-        "tanggalHasil": {
-          "type": "string",
-          "description": "Tanggal hasil pemeriksaan sampel. dengan format yyyy-mm-dd",
-          "example": "2021-01-12"
-        },
-        "hasil": {
-          "type": "string",
-          "description": "Hasil pemeriksaan",
-          "enum": [
-            "POSITIF",
-            "NEGATIF"
-          ]
-        },
-        "laboratorium": {
-          "$ref": "#/definitions/NamaKode"
-        }
-      }
-    },
-    "DataFaskes": {
-      "type": "object",
-      "properties": {
-        "faskes": {
-          "$ref": "#/definitions/NamaKode"
-        },
-        "jenisFaskes": {
-          "type": "integer",
-          "enum": [
-            1,
-            2,
-            3,
-            4,
-            5,
-            6,
-            7
-          ],
-          "description": "Jenis faskes yang memberikan laporan. 1=Puskesmas, 2=Rumah Sakit, 3=Dinkes Provinsi, 4=Dinkes Kabupaten Kota, 5=Klinik, 6=Laboratorium, 7=Lainnya"
-        },
-        "provinsi": {
-          "$ref": "#/definitions/NamaKode"
-        },
-        "kabupatenKota": {
-          "$ref": "#/definitions/NamaKode"
-        }
-      }
-    },
-    "NamaKodeJenis": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/definitions/NamaKode"
-        }
-      ],
-      "properties": {
-        "jenis": {
-          "type": "string",
-          "enum": [
-            "PROVINSI",
-            "KABKOT",
-            "KECAMATAN",
-            "KELURAHAN"
-          ]
-        }
-      }
-    },
-    "NamaKodeJenisFaskes": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/definitions/NamaKode"
-        }
-      ],
-      "properties": {
-        "jenis": {
-          "type": "string",
-          "enum": [
-            "RS",
-            "Puskesmas"
-          ]
-        }
-      }
-    },
-    "InfoLab": {
-      "type": "object",
-      "properties": {
-        "lab": {
-          "$ref": "#/definitions/NamaKodeLab"
-        },
-        "provinsi": {
-          "$ref": "#/definitions/NamaKode"
-        }
-      }
-    },
-    "NamaKodeLab": {
-      "type": "object",
-      "allOf": [
-        {
-          "$ref": "#/definitions/NamaKode"
-        }
-      ],
-      "properties": {
-        "type_lab": {
-          "type": "integer",
-          "enum": [
-            1,
-            2
-          ],
-          "description": "0=Lab, 1=Lab RS"
-        },
-        "is_check": {
-          "type": "integer",
-          "enum": [
-            1,
-            2
-          ],
-          "description": "0=Tidak, 1=Ya"
-        }
-      }
-    },
-    "NamaKode": {
-      "type": "object",
-      "properties": {
-        "nama": {
+        "base_path": {
           "type": "string"
         },
-        "kode": {
+        "delay_min_ms": {
+          "type": "integer"
+        },
+        "delay_max_ms": {
+          "type": "integer"
+        },
+        "return_code": {
+          "type": "integer"
+        },
+        "return_headers": {
+          "type": "object",
+          "description": "map[string][]string : {Content-Type:[application/json,application/xml]}",
+          "additionalProperties": true
+        },
+        "return_body": {
           "type": "string"
         }
       }
     }
   },
   "externalDocs": {
-    "description": "NAR main website",
-    "url": "https://allrecord-tc19.kemkes.go.id/"
+    "description": "Hyperjump's HTTPTarget GITHUB Page",
+    "url": "https://github.com/hyperjumptech/httptarget"
   }
 }
