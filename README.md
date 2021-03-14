@@ -101,6 +101,18 @@ favourite web-browser and go to `http://localhost:51423/docs/index.html`. It wil
 you can configure your server or integrate your testing with. The __OpenAPI Swagger__ page will tell you everything about
 __API Endpoints__ available for you to use, what __method__, __parameters__, __URL__, etc.
 
+## Running HttpTarget from Docker
+
+For Docker lover, good news ! Docker is the easiest way to run **HttpTarget**. Simply copy bellow command
+and paste it in your terminal... err, you might need `sudo`
+
+```bash
+docker run --name myhttptarget -p 8080:51423 --detach hyperjump/httptarget:v1.1.0
+```
+
+Yeah... you can immediately open port `8080` (as in `http://localhost:8080/docs`) after running that docker image. Or use another port as you wish.
+No download, extract fuss. Just that.
+
 ## All configuration stuff is too complicated, Let me test straight away !!
 
 **HttpTarget** configuration (swagger etc) is indeed not for every body ;). However, for you who don't want to sweat the configuration, 
