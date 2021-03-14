@@ -2,26 +2,189 @@
   "swagger": "2.0",
   "info": {
     "description": "Manage your dummey target server",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "title": "HTTP Target Server",
     "termsOfService": ""
   },
-  "basePath": "/api",
+  "basePath": "/",
   "tags": [
     {
       "name": "Server Management",
       "description": "Manage your http target server"
+    },
+    {
+      "name": "Built-In",
+      "description": "Built-In endpoints"
     }
   ],
   "schemes": [
     "http"
   ],
   "paths": {
-    "/paths": {
+    "/delay/{delay}": {
+      "get": {
+        "tags": [
+          "Built-In"
+        ],
+        "summary": "Always return HTTP 200 after delay",
+        "description": "Always return HTTP 200 after {delay} millisecond delay<br>Although the Swagger spec use GET, you can always use any other method",
+        "produces": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "required": true,
+            "name": "delay",
+            "description": "Expected delay in milliseconds",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Always success"
+          }
+        }
+      }
+    },
+    "/delay/{minDelay}/{maxDelay}": {
+      "get": {
+        "tags": [
+          "Built-In"
+        ],
+        "summary": "Always return HTTP 200 after delay",
+        "description": "Always return HTTP 200 after delay between {minDelay} and {maxDelay} millisecond<br>Although the Swagger spec use GET, you can always use any other method",
+        "produces": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "required": true,
+            "name": "minDelay",
+            "description": "Expected minimum delay in milliseconds",
+            "type": "integer"
+          },
+          {
+            "in": "path",
+            "required": true,
+            "name": "maxDelay",
+            "description": "Expected maximum delay in milliseconds",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Always success"
+          }
+        }
+      }
+    },
+    "/code/{responseCode}": {
+      "get": {
+        "tags": [
+          "Built-In"
+        ],
+        "summary": "Always return HTTP with code as specified",
+        "description": "Always return HTTP with code as specified in the {responseCodePath}<br>Although the Swagger spec use GET, you can always use any other method",
+        "produces": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "required": true,
+            "name": "responseCode",
+            "description": "Wanted response code",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Not always 200, Depends on the responseCode path argument"
+          }
+        }
+      }
+    },
+    "/code/{responseCode}/{delay}": {
+      "get": {
+        "tags": [
+          "Built-In"
+        ],
+        "summary": "Always return HTTP with code as specified after a delay",
+        "description": "Always return with code {responseCode} after {delay} milliseconds<br>Although the Swagger spec use GET, you can always use any other method",
+        "produces": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "required": true,
+            "name": "responseCode",
+            "description": "Wanted response code",
+            "type": "integer"
+          },
+          {
+            "in": "path",
+            "required": true,
+            "name": "delay",
+            "description": "Delay in milliseconds",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Not always 200, Depends on the responseCode path argument"
+          }
+        }
+      }
+    },
+    "/code/{responseCode}/{minDelay}/{maxDelay}": {
+      "get": {
+        "tags": [
+          "Built-In"
+        ],
+        "summary": "Always return HTTP with code as specified after a delay",
+        "description": "Always return with code {responseCode} after delay between {minDelay} to {maxDelay} milliseconds<br>Although the Swagger spec use GET, you can always use any other method",
+        "produces": [
+          "text/plain"
+        ],
+        "parameters": [
+          {
+            "in": "path",
+            "required": true,
+            "name": "responseCode",
+            "description": "Wanted response code",
+            "type": "integer"
+          },
+          {
+            "in": "path",
+            "required": true,
+            "name": "minDelay",
+            "description": "Minimum Delay in milliseconds",
+            "type": "integer"
+          },
+          {
+            "in": "path",
+            "required": true,
+            "name": "maxDelay",
+            "description": "Maximum Delay in milliseconds",
+            "type": "integer"
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Not always 200, Depends on the responseCode path argument"
+          }
+        }
+      }
+    },
+    "/api/paths": {
       "post": {
         "tags": [
           "Server Management"
         ],
+        "summary": "Create new test base path",
         "consumes": [
           "application/json"
         ],
@@ -55,6 +218,7 @@
         "tags": [
           "Server Management"
         ],
+        "summary": "List all test base paths except the built-ins",
         "produces": [
           "application/json"
         ],
@@ -77,6 +241,7 @@
         "tags": [
           "Server Management"
         ],
+        "summary": "Change/update a test base path except the built-ins",
         "consumes": [
           "application/json"
         ],
@@ -119,6 +284,7 @@
         "tags": [
           "Server Management"
         ],
+        "summary": "Delete a test base path except the built-ins",
         "parameters": [
           {
             "in": "query",

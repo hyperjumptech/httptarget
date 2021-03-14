@@ -43,6 +43,10 @@ func init() {
 	rand.Seed(time.Now().Unix())
 }
 
+func AddEndPoint(ep *model.EndPoint) error {
+	return endPoints.Add(ep)
+}
+
 func Start(host string, port int, initEndpoint *model.EndPoint) error {
 	err := endPoints.Add(initEndpoint)
 	if err != nil {
@@ -259,6 +263,149 @@ func (h *HttpTargetHandler) ServeHTTP(res http.ResponseWriter, req *http.Request
 			}
 		}
 		res.WriteHeader(http.StatusNotFound)
+	} else if strings.HasPrefix(req.URL.Path, "/delay/") {
+		var minDelay, maxDelay int
+		params, err := ParsePathParams("/delay/{minDelay}", req.URL.Path)
+		if err != nil {
+			params, err = ParsePathParams("/delay/{minDelay}/{maxDelay}", req.URL.Path)
+			if err != nil {
+				res.WriteHeader(http.StatusNotFound)
+				res.Write([]byte("Provided path not exist. try /delay/{minDelay} or /delay/{minDelay}/{maxDelay}"))
+				return
+			} else {
+				strMinDelay := params["minDelay"]
+				strMaxDelay := params["maxDelay"]
+				mid, err := strconv.Atoi(strMinDelay)
+				if err != nil {
+					res.WriteHeader(http.StatusBadRequest)
+					res.Write([]byte("Provided min delay  is not integer."))
+					return
+				}
+				minDelay = mid
+				mad, err := strconv.Atoi(strMaxDelay)
+				if err != nil {
+					res.WriteHeader(http.StatusBadRequest)
+					res.Write([]byte("Provided max delay  is not integer."))
+					return
+				}
+				maxDelay = mad
+			}
+		} else {
+			strMinDelay := params["minDelay"]
+			mDelay, err := strconv.Atoi(strMinDelay)
+			if err != nil {
+				res.WriteHeader(http.StatusBadRequest)
+				res.Write([]byte("Provided min delay  is not integer."))
+				return
+			}
+			minDelay = mDelay
+			maxDelay = minDelay
+		}
+
+		randDelay := 0
+
+		if minDelay > maxDelay {
+			t := minDelay
+			minDelay = maxDelay
+			maxDelay = t
+		}
+
+		if minDelay == maxDelay && minDelay >= 0 {
+			logrus.Debugf("Path %s delay %d", req.URL.Path, minDelay)
+			time.Sleep(time.Duration(minDelay) * time.Millisecond)
+			randDelay = minDelay
+		} else if minDelay != maxDelay && minDelay == 0 {
+			randDelay = rand.Intn(maxDelay)
+			logrus.Debugf("Path %s delay between %d and %d : %d", req.URL.Path, minDelay, maxDelay, randDelay)
+			if randDelay > 0 {
+				time.Sleep(time.Duration(randDelay) * time.Millisecond)
+			}
+		} else if minDelay != maxDelay {
+			randDelay = minDelay + rand.Intn(maxDelay-minDelay)
+			logrus.Debugf("Path %s delay between %d and %d : %d", req.URL.Path, minDelay, maxDelay, randDelay)
+			if randDelay > 0 {
+				time.Sleep(time.Duration(randDelay) * time.Millisecond)
+			}
+		} else {
+			logrus.Debugf("Path %s no delay", req.URL.Path)
+		}
+
+		res.Header().Set("Content-Type", "text/plain")
+		res.WriteHeader(http.StatusOK)
+		res.Write([]byte(fmt.Sprintf("OK, delayed between %dms and %dms : %dms", minDelay, maxDelay, randDelay)))
+	} else if strings.HasPrefix(req.URL.Path, "/code/") {
+		scode := "200"
+		smin := "0"
+		smad := "0"
+		var code, minDelay, maxDelay int
+		params, err := ParsePathParams("/code/{resCode}", req.URL.Path)
+		if err != nil {
+			params, err = ParsePathParams("/code/{resCode}/{minDelay}", req.URL.Path)
+			if err != nil {
+				params, err = ParsePathParams("/code/{resCode}/{minDelay}/{maxDelay}", req.URL.Path)
+				if err != nil {
+					res.WriteHeader(http.StatusNotFound)
+					res.Write([]byte("Provided path not exist. try /code/{resCode} or /code/{resCode}/{minDelay} or /code/{resCode}/{minDelay}/{maxDelay}."))
+					return
+				}
+				scode = params["resCode"]
+				smin = params["minDelay"]
+				smad = params["maxDelay"]
+			} else {
+				scode = params["resCode"]
+				smin = params["minDelay"]
+				smad = smin
+			}
+		} else {
+			scode = params["resCode"]
+		}
+		codeD, codeErr := strconv.Atoi(scode)
+		minD, minErr := strconv.Atoi(smin)
+		maxD, maxErr := strconv.Atoi(smad)
+		if codeErr != nil || minErr != nil || maxErr != nil {
+			res.WriteHeader(http.StatusBadRequest)
+			res.Write([]byte("The code, minimum delay or maximum delay is not an integer."))
+			return
+		}
+		if codeD >= 600 || codeD < 200 {
+			res.WriteHeader(http.StatusBadRequest)
+			res.Write([]byte("Response code invalid. Valid response code is between 200 to 599"))
+			return
+		}
+		code = codeD
+		randDelay := 0
+		minDelay = minD
+		maxDelay = maxD
+
+		if minDelay > maxDelay {
+			t := minDelay
+			minDelay = maxDelay
+			maxDelay = t
+		}
+
+		if minDelay == maxDelay && minDelay >= 0 {
+			logrus.Debugf("Path %s delay %d", req.URL.Path, minDelay)
+			time.Sleep(time.Duration(minDelay) * time.Millisecond)
+			randDelay = minDelay
+		} else if minDelay != maxDelay && minDelay == 0 {
+			randDelay = rand.Intn(maxDelay)
+			logrus.Debugf("Path %s delay %d", req.URL.Path, minDelay)
+			if randDelay > 0 {
+				time.Sleep(time.Duration(minDelay) * time.Millisecond)
+			}
+		} else if minDelay != maxDelay {
+			randDelay = minDelay + rand.Intn(maxDelay-minDelay)
+			logrus.Debugf("Path %s delay %d", req.URL.Path, randDelay)
+			if randDelay > 0 {
+				time.Sleep(time.Duration(randDelay) * time.Millisecond)
+			}
+		} else {
+			logrus.Debugf("Path %s no delay", req.URL.Path)
+		}
+
+		res.Header().Set("Content-Type", "text/plain")
+		res.WriteHeader(code)
+		res.Write([]byte(fmt.Sprintf("OK, delayed between %dms and %dms : %dms", minDelay, maxDelay, randDelay)))
 	} else {
 		ep := endPoints.GetByPath(req.URL.Path)
 		if ep == nil {
@@ -281,4 +428,32 @@ func (h *HttpTargetHandler) ServeHTTP(res http.ResponseWriter, req *http.Request
 			res.Write([]byte(ep.ReturnBody))
 		}
 	}
+}
+
+// ParsePathParams parse request path param according to path template and extract its values.
+func ParsePathParams(template, path string) (map[string]string, error) {
+	var pth string
+	if strings.Contains(path, "?") {
+		pth = path[:strings.Index(path, "?")]
+	} else {
+		pth = path
+	}
+	templatePaths := strings.Split(template, "/")
+	pathPaths := strings.Split(pth, "/")
+	if len(templatePaths) != len(pathPaths) {
+		return nil, fmt.Errorf("pathElement length not equals to templateElement length")
+	}
+	ret := make(map[string]string)
+	for idx, templateElement := range templatePaths {
+		pathElement := pathPaths[idx]
+		if len(templateElement) > 0 && len(pathElement) > 0 {
+			if templateElement[:1] == "{" && templateElement[len(templateElement)-1:] == "}" {
+				tKey := templateElement[1 : len(templateElement)-1]
+				ret[tKey] = pathElement
+			} else if templateElement != pathElement {
+				return nil, fmt.Errorf("template %s not compatible with path %s", template, path)
+			}
+		}
+	}
+	return ret, nil
 }
