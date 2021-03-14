@@ -45,6 +45,8 @@ func main() {
 		os.Exit(0)
 	}
 
+	logrus.SetLevel(logrus.TraceLevel)
+
 	initEp := &model.EndPoint{
 		ID:            0,
 		BasePath:      *pathFlag,

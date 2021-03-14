@@ -292,21 +292,47 @@ func (h *HttpTargetHandler) ServeHTTP(res http.ResponseWriter, req *http.Request
 			}
 		} else {
 			strMinDelay := params["minDelay"]
-			minDelay, err := strconv.Atoi(strMinDelay)
+			mDelay, err := strconv.Atoi(strMinDelay)
 			if err != nil {
 				res.WriteHeader(http.StatusBadRequest)
 				res.Write([]byte("Provided min delay  is not integer."))
 				return
 			}
+			minDelay = mDelay
 			maxDelay = minDelay
 		}
-		randDelay := minDelay + rand.Intn(maxDelay-minDelay)
-		logrus.Debugf("Path %s delay %d, min %d, max %d", req.URL.Path, randDelay, minDelay, maxDelay)
-		time.Sleep(time.Duration(randDelay) * time.Millisecond)
+
+		randDelay := 0
+
+		if minDelay > maxDelay {
+			t := minDelay
+			minDelay = maxDelay
+			maxDelay = t
+		}
+
+		if minDelay == maxDelay && minDelay >= 0 {
+			logrus.Debugf("Path %s delay %d", req.URL.Path, minDelay)
+			time.Sleep(time.Duration(minDelay) * time.Millisecond)
+			randDelay = minDelay
+		} else if minDelay != maxDelay && minDelay == 0 {
+			randDelay = rand.Intn(maxDelay)
+			logrus.Debugf("Path %s delay between %d and %d : %d", req.URL.Path, minDelay, maxDelay, randDelay)
+			if randDelay > 0 {
+				time.Sleep(time.Duration(randDelay) * time.Millisecond)
+			}
+		} else if minDelay != maxDelay {
+			randDelay = minDelay + rand.Intn(maxDelay-minDelay)
+			logrus.Debugf("Path %s delay between %d and %d : %d", req.URL.Path, minDelay, maxDelay, randDelay)
+			if randDelay > 0 {
+				time.Sleep(time.Duration(randDelay) * time.Millisecond)
+			}
+		} else {
+			logrus.Debugf("Path %s no delay", req.URL.Path)
+		}
 
 		res.Header().Set("Content-Type", "text/plain")
 		res.WriteHeader(http.StatusOK)
-		res.Write([]byte(fmt.Sprintf("OK, delayed between %d and %d : %d", minDelay, maxDelay, randDelay)))
+		res.Write([]byte(fmt.Sprintf("OK, delayed between %dms and %dms : %dms", minDelay, maxDelay, randDelay)))
 	} else if strings.HasPrefix(req.URL.Path, "/code/") {
 		scode := "200"
 		smin := "0"
@@ -341,17 +367,45 @@ func (h *HttpTargetHandler) ServeHTTP(res http.ResponseWriter, req *http.Request
 			res.Write([]byte("The code, minimum delay or maximum delay is not an integer."))
 			return
 		}
+		if codeD >= 600 || codeD < 200 {
+			res.WriteHeader(http.StatusBadRequest)
+			res.Write([]byte("Response code invalid. Valid response code is between 200 to 599"))
+			return
+		}
 		code = codeD
+		randDelay := 0
 		minDelay = minD
 		maxDelay = maxD
 
-		randDelay := minDelay + rand.Intn(maxDelay-minDelay)
-		logrus.Debugf("Path %s delay %d, min %d, max %d", req.URL.Path, randDelay, minDelay, maxDelay)
-		time.Sleep(time.Duration(randDelay) * time.Millisecond)
+		if minDelay > maxDelay {
+			t := minDelay
+			minDelay = maxDelay
+			maxDelay = t
+		}
+
+		if minDelay == maxDelay && minDelay >= 0 {
+			logrus.Debugf("Path %s delay %d", req.URL.Path, minDelay)
+			time.Sleep(time.Duration(minDelay) * time.Millisecond)
+			randDelay = minDelay
+		} else if minDelay != maxDelay && minDelay == 0 {
+			randDelay = rand.Intn(maxDelay)
+			logrus.Debugf("Path %s delay %d", req.URL.Path, minDelay)
+			if randDelay > 0 {
+				time.Sleep(time.Duration(minDelay) * time.Millisecond)
+			}
+		} else if minDelay != maxDelay {
+			randDelay = minDelay + rand.Intn(maxDelay-minDelay)
+			logrus.Debugf("Path %s delay %d", req.URL.Path, randDelay)
+			if randDelay > 0 {
+				time.Sleep(time.Duration(randDelay) * time.Millisecond)
+			}
+		} else {
+			logrus.Debugf("Path %s no delay", req.URL.Path)
+		}
 
 		res.Header().Set("Content-Type", "text/plain")
 		res.WriteHeader(code)
-		res.Write([]byte(fmt.Sprintf("OK, delayed between %d and %d : %d", minDelay, maxDelay, randDelay)))
+		res.Write([]byte(fmt.Sprintf("OK, delayed between %dms and %dms : %dms", minDelay, maxDelay, randDelay)))
 	} else {
 		ep := endPoints.GetByPath(req.URL.Path)
 		if ep == nil {

@@ -101,4 +101,53 @@ favourite web-browser and go to `http://localhost:51423/docs/index.html`. It wil
 you can configure your server or integrate your testing with. The __OpenAPI Swagger__ page will tell you everything about
 __API Endpoints__ available for you to use, what __method__, __parameters__, __URL__, etc.
 
+## All configuration stuff is too complicated, Let me test straight away !!
+
+**HttpTarget** configuration (swagger etc) is indeed not for every body ;). However, for you who don't want to sweat the configuration, 
+you can straight away uses the following 2 built-in endpoint groups. (oh yeah, they accept any `method`)
+
+**Delay Endpoints**
+
+They have the following path patterns
+
+- `/delay/{delay}` This endpoint will simply delay it-self for __{delay}__ milliseconds and return http response code `200`
+- `/delay/{minDelay}/{maxDelay}` This endpoint will simply delay it-self for between __{minDelay}__ and __{maxDelay}__ milliseconds and return http response code `200`
+
+for example :
+
+```text
+>> GET http://localhost:51423/delay/1000/2000
+<< 200 OK
+<< OK, delayed between 1000ms and 2000ms : 1120ms
+```
+
+```text
+>> GET http://localhost:51423/delay/1000
+<< 200 OK
+<< OK, delayed between 1000ms and 1000ms : 1000ms
+```
+
+**Code Endpoints**
+
+They have the following path pattern
+
+- `/code/{responsecode}` This endpoint will simply http response code __{responsecode}__
+- `/code/{responsecode}/{delay}` This endpoint will simply delay it-self for __{delay}__ milliseconds and return http response code __{responsecode}__
+- `/code/{responsecode}/{minDelay}/{maxDelay}` This endpoint will simply delay it-self for between __{minDelay}__ and __{maxDelay}__ milliseconds and return http response code __{responsecode}__
+
+for example :
+
+```text
+>> GET http://localhost:51423/code/202/2000
+<< 202 Accepted
+<< OK, delayed between 2000ms and 2000ms : 2000ms
+```
+
+```text
+>> GET http://localhost:51423/code/500/2000/3000
+<< 500 Internal Server Error
+<< OK, delayed between 2000ms and 3000ms : 2630ms
+```
+
+
 Finally, Happy Testing from Hyperjump team !!!
