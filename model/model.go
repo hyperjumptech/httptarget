@@ -92,8 +92,11 @@ func (e *EndPoints) Add(ep *EndPoint) error {
 	if len(ep.BasePath) == 0 {
 		return fmt.Errorf("basepath must not empty")
 	}
-	if strings.HasPrefix(ep.BasePath, "/docs") || strings.HasPrefix(ep.BasePath, "/api") {
-		return fmt.Errorf("basepath \"%s\" is prefixed with server's internal use path \"/docs\" or \"/api\"", ep.BasePath)
+	if strings.HasPrefix(ep.BasePath, "/docs") ||
+		strings.HasPrefix(ep.BasePath, "/api") ||
+		strings.HasPrefix(ep.BasePath, "/delay") ||
+		strings.HasPrefix(ep.BasePath, "/code") {
+		return fmt.Errorf("basepath \"%s\" is prefixed with server's internal use path \"/docs\" or \"/api\" or \"/code\" or \"/delay\"", ep.BasePath)
 	}
 	if isPref, by := e.IsPrefixed(-1, ep.BasePath); isPref {
 		return fmt.Errorf("basepath %s is prefixed with %s", ep.BasePath, by)
