@@ -1,12 +1,13 @@
 GOPATH=$(shell go env GOPATH)
 IMAGE_REGISTRY=dockerhub
-IMAGE_NAMESPACE ?= hyperjumptech
-IMAGE_NAME ?= $(shell basename `pwd`)
+IMAGE_NAMESPACE ?= hyperjump
+IMAGE_NAME ?= httptarget
 CURRENT_PATH=$(shell pwd)
 COMMIT_ID ?= $(shell git rev-parse --short HEAD)
+VERSION=v1.1.0
 GO111MODULE=on
 
-.PHONY: clean build-all
+.PHONY: clean build-all build docker-push docker-build
 
 build-linux:
 	mkdir -p build/linux
@@ -40,12 +41,12 @@ docker:
 docker-build-commit: build
 	docker build -t $(IMAGE_NAMESPACE)/$(IMAGE_NAME):$(COMMIT_ID) -f ./Dockerfile .
 
-docker-build: build
-	docker build -t $(IMAGE_NAMESPACE)/$(IMAGE_NAME):$(COMMIT_ID) -f ./Dockerfile .
+docker-build: docker-build-commit
+	docker tag $(IMAGE_NAMESPACE)/$(IMAGE_NAME):$(COMMIT_ID) $(IMAGE_NAMESPACE)/$(IMAGE_NAME):$(VERSION)
 	docker tag $(IMAGE_NAMESPACE)/$(IMAGE_NAME):$(COMMIT_ID) $(IMAGE_NAMESPACE)/$(IMAGE_NAME):latest
 
-docker-push:
-	docker push $(IMAGE_NAMESPACE)/$(IMAGE_NAME):$(COMMIT_ID)
+docker-push: docker-build
+	docker push $(IMAGE_NAMESPACE)/$(IMAGE_NAME):$(VERSION)
 
 docker-stop:
 	-docker stop $(IMAGE_NAME)
